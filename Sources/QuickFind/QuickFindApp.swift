@@ -9,6 +9,7 @@ extension Notification.Name {
 
 enum SettingsKey {
     static let hotKeyEnabled = "hotKeyEnabled"
+    static let hotKeyOption = "hotKeyOption"
     static let hideDockIcon = "hideDockIcon"
 }
 
@@ -50,8 +51,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         HotKeyManager.shared.onHotKey = {
             Task { @MainActor in WindowManager.shared.toggle() }
         }
-        if defaults.bool(forKey: SettingsKey.hotKeyEnabled) {
-            HotKeyManager.shared.register()
+        applyHotKeySetting()
+    }
+
+    private var currentHotKeyOption: HotKeyOption {
+        HotKeyOption(rawValue: UserDefaults.standard.string(forKey: SettingsKey.hotKeyOption) ?? "")
+            ?? .default
+    }
+
+    private func applyHotKeySetting() {
+        if UserDefaults.standard.bool(forKey: SettingsKey.hotKeyEnabled) {
+            HotKeyManager.shared.register(option: currentHotKeyOption)
+        } else {
+            HotKeyManager.shared.unregister()
         }
     }
 
@@ -111,21 +123,38 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         let defaults = UserDefaults.standard
         let menu = NSMenu()
 
+        let hotKeyEnabled = defaults.bool(forKey: SettingsKey.hotKeyEnabled)
         let openItem = NSMenuItem(
-            title: "열기 / 숨기기 (⌥Space)",
+            title: "열기 / 숨기기 (\(currentHotKeyOption.label))",
             action: #selector(menuToggleWindow), keyEquivalent: ""
         )
         openItem.target = self
         menu.addItem(openItem)
         menu.addItem(.separator())
 
-        let hotKeyItem = NSMenuItem(
-            title: "전역 단축키 ⌥Space 사용",
-            action: #selector(menuToggleHotKey), keyEquivalent: ""
+        let hotKeyMenu = NSMenu()
+        for option in HotKeyOption.allCases {
+            let item = NSMenuItem(
+                title: option.label,
+                action: #selector(menuSelectHotKey(_:)), keyEquivalent: ""
+            )
+            item.target = self
+            item.representedObject = option.rawValue
+            item.state = (hotKeyEnabled && option == currentHotKeyOption) ? .on : .off
+            hotKeyMenu.addItem(item)
+        }
+        hotKeyMenu.addItem(.separator())
+        let disableItem = NSMenuItem(
+            title: "사용 안 함",
+            action: #selector(menuDisableHotKey), keyEquivalent: ""
         )
-        hotKeyItem.target = self
-        hotKeyItem.state = defaults.bool(forKey: SettingsKey.hotKeyEnabled) ? .on : .off
-        menu.addItem(hotKeyItem)
+        disableItem.target = self
+        disableItem.state = hotKeyEnabled ? .off : .on
+        hotKeyMenu.addItem(disableItem)
+
+        let hotKeyRoot = NSMenuItem(title: "전역 단축키", action: nil, keyEquivalent: "")
+        hotKeyRoot.submenu = hotKeyMenu
+        menu.addItem(hotKeyRoot)
 
         let dockItem = NSMenuItem(
             title: "Dock 아이콘 숨기기",
@@ -153,15 +182,18 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         Task { @MainActor in WindowManager.shared.toggle() }
     }
 
-    @objc private func menuToggleHotKey() {
+    @objc private func menuSelectHotKey(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String,
+              let option = HotKeyOption(rawValue: raw) else { return }
         let defaults = UserDefaults.standard
-        let enabled = !defaults.bool(forKey: SettingsKey.hotKeyEnabled)
-        defaults.set(enabled, forKey: SettingsKey.hotKeyEnabled)
-        if enabled {
-            HotKeyManager.shared.register()
-        } else {
-            HotKeyManager.shared.unregister()
-        }
+        defaults.set(option.rawValue, forKey: SettingsKey.hotKeyOption)
+        defaults.set(true, forKey: SettingsKey.hotKeyEnabled)
+        applyHotKeySetting()
+    }
+
+    @objc private func menuDisableHotKey() {
+        UserDefaults.standard.set(false, forKey: SettingsKey.hotKeyEnabled)
+        applyHotKeySetting()
     }
 
     @objc private func menuToggleDockIcon() {
