@@ -9,14 +9,15 @@ enum Formatters {
 
     static let dateTime: DateFormatter = {
         let f = DateFormatter()
-        f.locale = Locale(identifier: "ko_KR")
-        f.dateFormat = "yyyy. M. d. a h:mm"
+        f.locale = .autoupdatingCurrent
+        f.dateStyle = .medium
+        f.timeStyle = .short
         return f
     }()
 
     static let relativeDate: RelativeDateTimeFormatter = {
         let f = RelativeDateTimeFormatter()
-        f.locale = Locale(identifier: "ko_KR")
+        f.locale = .autoupdatingCurrent
         f.unitsStyle = .short
         return f
     }()

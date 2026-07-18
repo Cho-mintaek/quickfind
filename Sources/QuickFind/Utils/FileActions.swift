@@ -63,7 +63,7 @@ enum FileActions {
             at: trashURL, includingPropertiesForKeys: nil,
             options: [.skipsSubdirectoryDescendants]
         ) else {
-            return "Finder 제어가 거부되어 휴지통을 비우지 못했습니다. 시스템 설정 → 개인정보 보호 및 보안 → 자동화에서 QuickFind 의 Finder 제어를 허용해주세요."
+            return tr("Finder 제어가 거부되어 휴지통을 비우지 못했습니다. 시스템 설정 → 개인정보 보호 및 보안 → 자동화에서 QuickFind 의 Finder 제어를 허용해주세요.", "Finder control was denied. Allow QuickFind to control Finder in System Settings → Privacy & Security → Automation.")
         }
         var failures = 0
         for url in contents {
@@ -73,7 +73,7 @@ enum FileActions {
                 failures += 1
             }
         }
-        return failures > 0 ? "\(failures)개 항목을 삭제하지 못했습니다." : nil
+        return failures > 0 ? tr("\(failures)개 항목을 삭제하지 못했습니다.", "\(failures) item(s) could not be deleted.") : nil
     }
 
     static func copyPath(_ result: SearchResult) {

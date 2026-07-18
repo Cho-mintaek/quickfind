@@ -72,41 +72,41 @@ struct SearchPaneView: View {
             }
         }
         .alert(
-            removalIsPermanent ? "영구 삭제" : "휴지통으로 이동",
+            removalIsPermanent ? tr("영구 삭제", "Delete Permanently") : tr("휴지통으로 이동", "Move to Trash"),
             isPresented: $showRemovalConfirm
         ) {
-            Button("취소", role: .cancel) {}
-            Button(removalIsPermanent ? "삭제" : "이동", role: .destructive) {
+            Button(tr("취소", "Cancel"), role: .cancel) {}
+            Button(removalIsPermanent ? tr("삭제", "Delete") : tr("이동", "Move"), role: .destructive) {
                 performRemoval()
             }
         } message: {
             Text(removalConfirmMessage)
         }
-        .alert("휴지통 비우기", isPresented: $showEmptyTrashConfirm) {
-            Button("취소", role: .cancel) {}
-            Button("비우기", role: .destructive) { performEmptyTrash() }
+        .alert(tr("휴지통 비우기", "Empty Trash"), isPresented: $showEmptyTrashConfirm) {
+            Button(tr("취소", "Cancel"), role: .cancel) {}
+            Button(tr("비우기", "Empty"), role: .destructive) { performEmptyTrash() }
         } message: {
-            Text("휴지통의 모든 항목을 영구적으로 삭제합니다. 이 동작은 되돌릴 수 없습니다.")
+            Text(tr("휴지통의 모든 항목을 영구적으로 삭제합니다. 이 동작은 되돌릴 수 없습니다.", "All items in the Trash will be permanently deleted. This cannot be undone."))
         }
         .alert(
-            "일부 항목을 처리하지 못했습니다",
+            tr("일부 항목을 처리하지 못했습니다", "Some items could not be processed"),
             isPresented: Binding(
                 get: { failureCount != nil },
                 set: { if !$0 { failureCount = nil } }
             )
         ) {
-            Button("확인", role: .cancel) {}
+            Button(tr("확인", "OK"), role: .cancel) {}
         } message: {
-            Text("\(failureCount ?? 0)개 항목을 처리하지 못했습니다. 권한이나 파일 상태를 확인해주세요.")
+            Text(tr("\(failureCount ?? 0)개 항목을 처리하지 못했습니다. 권한이나 파일 상태를 확인해주세요.", "\(failureCount ?? 0) item(s) could not be processed. Check permissions or file state."))
         }
         .alert(
-            "휴지통을 비우지 못했습니다",
+            tr("휴지통을 비우지 못했습니다", "Could not empty Trash"),
             isPresented: Binding(
                 get: { emptyTrashError != nil },
                 set: { if !$0 { emptyTrashError = nil } }
             )
         ) {
-            Button("확인", role: .cancel) {}
+            Button(tr("확인", "OK"), role: .cancel) {}
         } message: {
             Text(emptyTrashError ?? "")
         }
@@ -119,11 +119,11 @@ struct SearchPaneView: View {
     private var removalConfirmMessage: String {
         let count = removalCandidates.count
         let bytes = removalCandidates.reduce(Int64(0)) { $0 + ($1.size ?? 0) }
-        let sizeText = bytes > 0 ? " (합계 \(Formatters.size(bytes)))" : ""
+        let sizeText = bytes > 0 ? tr(" (합계 \(Formatters.size(bytes)))", " (total \(Formatters.size(bytes)))") : ""
         if removalIsPermanent {
-            return "\(count)개 항목\(sizeText)을 영구적으로 삭제합니다. 이 동작은 되돌릴 수 없습니다."
+            return tr("\(count)개 항목\(sizeText)을 영구적으로 삭제합니다. 이 동작은 되돌릴 수 없습니다.", "\(count) item(s)\(sizeText) will be permanently deleted. This cannot be undone.")
         }
-        return "\(count)개 항목\(sizeText)을 휴지통으로 이동합니다. 휴지통에서 복원할 수 있습니다."
+        return tr("\(count)개 항목\(sizeText)을 휴지통으로 이동합니다. 휴지통에서 복원할 수 있습니다.", "\(count) item(s)\(sizeText) will be moved to the Trash. You can restore them there.")
     }
 
     private func requestRemoval(_ results: [SearchResult]) {

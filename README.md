@@ -4,7 +4,8 @@
 
 Spotlight 인덱스를 직접 조회해 타이핑하는 즉시 결과가 나타납니다. 파인더 검색이 답답했다면, 그리고 "내 디스크 어디에 뭐가 쌓여 있는지" 한눈에 보고 정리하고 싶었다면 — 그걸 하나로 해결합니다.
 
-> Blazing-fast file search + storage cleanup for macOS, powered by the Spotlight index. Korean-first UI.
+> Blazing-fast file search + storage cleanup for macOS, powered by the Spotlight index.
+> UI is in **English or Korean**, following your system language. Global hotkey (⇧⌘Space), menu bar resident, storage cleanup presets, Trash browser, split view & multi-window. MIT licensed, zero dependencies.
 
 ![검색 결과](docs/screenshots/search-results.png)
 
@@ -77,7 +78,7 @@ cp -R build/QuickFind.app /Applications/
 
 - [x] 전역 단축키 (⇧⌘Space, 변경 가능) — v1.1
 - [x] 메뉴바 상주 모드 — v1.1
-- [ ] 영어 로컬라이제이션
+- [x] 영어 로컬라이제이션 — v1.3
 - [ ] Developer ID 서명 + 공증
 
 ## 라이선스

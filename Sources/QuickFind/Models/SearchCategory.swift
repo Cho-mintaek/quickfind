@@ -17,15 +17,15 @@ enum SearchCategory: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .all: return "전체"
-        case .folder: return "폴더"
-        case .document: return "문서"
+        case .all: return tr("전체", "All")
+        case .folder: return tr("폴더", "Folders")
+        case .document: return tr("문서", "Documents")
         case .pdf: return "PDF"
-        case .image: return "이미지"
-        case .video: return "동영상"
-        case .audio: return "음악"
-        case .archive: return "압축 파일"
-        case .application: return "응용 프로그램"
+        case .image: return tr("이미지", "Images")
+        case .video: return tr("동영상", "Videos")
+        case .audio: return tr("음악", "Music")
+        case .archive: return tr("압축 파일", "Archives")
+        case .application: return tr("응용 프로그램", "Applications")
         }
     }
 

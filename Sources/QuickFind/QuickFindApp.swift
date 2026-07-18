@@ -127,14 +127,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         let hotKeyEnabled = defaults.bool(forKey: SettingsKey.hotKeyEnabled)
         let openItem = NSMenuItem(
-            title: "열기 / 숨기기 (\(currentHotKeyOption.label))",
+            title: tr("열기 / 숨기기", "Show / Hide") + " (\(currentHotKeyOption.label))",
             action: #selector(menuToggleWindow), keyEquivalent: ""
         )
         openItem.target = self
         menu.addItem(openItem)
 
         let newWindowItem = NSMenuItem(
-            title: "새 검색 창",
+            title: tr("새 검색 창", "New Search Window"),
             action: #selector(menuNewWindow), keyEquivalent: ""
         )
         newWindowItem.target = self
@@ -154,19 +154,19 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         }
         hotKeyMenu.addItem(.separator())
         let disableItem = NSMenuItem(
-            title: "사용 안 함",
+            title: tr("사용 안 함", "Disabled"),
             action: #selector(menuDisableHotKey), keyEquivalent: ""
         )
         disableItem.target = self
         disableItem.state = hotKeyEnabled ? .off : .on
         hotKeyMenu.addItem(disableItem)
 
-        let hotKeyRoot = NSMenuItem(title: "전역 단축키", action: nil, keyEquivalent: "")
+        let hotKeyRoot = NSMenuItem(title: tr("전역 단축키", "Global Shortcut"), action: nil, keyEquivalent: "")
         hotKeyRoot.submenu = hotKeyMenu
         menu.addItem(hotKeyRoot)
 
         let dockItem = NSMenuItem(
-            title: "Dock 아이콘 숨기기",
+            title: tr("Dock 아이콘 숨기기", "Hide Dock Icon"),
             action: #selector(menuToggleDockIcon), keyEquivalent: ""
         )
         dockItem.target = self
@@ -175,7 +175,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
         menu.addItem(.separator())
         let quitItem = NSMenuItem(
-            title: "QuickFind 종료",
+            title: tr("QuickFind 종료", "Quit QuickFind"),
             action: #selector(menuQuit), keyEquivalent: "q"
         )
         quitItem.target = self
@@ -233,7 +233,7 @@ private struct FocusSearchCommand: View {
     @FocusedValue(\.focusSearchAction) private var focusSearch
 
     var body: some View {
-        Button("검색창으로 이동") {
+        Button(tr("검색창으로 이동", "Focus Search Field")) {
             focusSearch?()
         }
         .keyboardShortcut("f", modifiers: .command)

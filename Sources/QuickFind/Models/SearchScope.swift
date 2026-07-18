@@ -12,11 +12,11 @@ enum SearchScope: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .computer: return "전체 Mac"
-        case .home: return "홈 폴더"
-        case .desktop: return "데스크탑"
-        case .documents: return "문서"
-        case .downloads: return "다운로드"
+        case .computer: return tr("전체 Mac", "Entire Mac")
+        case .home: return tr("홈 폴더", "Home")
+        case .desktop: return tr("데스크탑", "Desktop")
+        case .documents: return tr("문서", "Documents")
+        case .downloads: return tr("다운로드", "Downloads")
         }
     }
 

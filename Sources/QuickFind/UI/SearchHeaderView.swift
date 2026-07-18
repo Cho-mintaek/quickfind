@@ -15,7 +15,7 @@ struct SearchHeaderView: View {
                     .foregroundStyle(.secondary)
 
                 TextField(
-                    engine.showingTrash ? "휴지통에서 이름으로 필터" : "파일 이름으로 검색",
+                    engine.showingTrash ? tr("휴지통에서 이름으로 필터", "Filter Trash by name") : tr("파일 이름으로 검색", "Search files by name"),
                     text: $engine.queryText
                 )
                 .textFieldStyle(.plain)
@@ -37,7 +37,7 @@ struct SearchHeaderView: View {
                             .foregroundStyle(.tertiary)
                     }
                     .buttonStyle(.plain)
-                    .help("검색어 지우기")
+                    .help(tr("검색어 지우기", "Clear search"))
                 }
             }
             .padding(.horizontal, 14)
@@ -59,7 +59,7 @@ struct SearchHeaderView: View {
                     Button(role: .destructive) {
                         requestEmptyTrash()
                     } label: {
-                        Label("휴지통 비우기", systemImage: "trash.slash")
+                        Label(tr("휴지통 비우기", "Empty Trash"), systemImage: "trash.slash")
                             .font(.system(size: 12))
                     }
                     .tint(.red)
@@ -69,19 +69,19 @@ struct SearchHeaderView: View {
                     // 분할 패널(피커 표시)에서는 좁은 폭에 맞춰 라벨을 줄인다
                     Toggle(isOn: $engine.searchContents) {
                         Label(
-                            showsFilterPickers ? "내용" : "파일 내용 포함",
+                            showsFilterPickers ? tr("내용", "Contents") : tr("파일 내용 포함", "Search file contents"),
                             systemImage: "doc.text.magnifyingglass"
                         )
                         .font(.system(size: 12))
                     }
                     .toggleStyle(.checkbox)
                     .fixedSize()
-                    .help("파일 이름뿐 아니라 문서 내부 텍스트에서도 검색합니다")
+                    .help(tr("파일 이름뿐 아니라 문서 내부 텍스트에서도 검색합니다", "Also search inside document text"))
                 }
 
                 if showsFilterPickers {
                     // labelsHidden: 선택된 값만 표시해 좁은 패널에서도 한 줄 유지
-                    Picker("범위", selection: $engine.scope) {
+                    Picker(tr("범위", "Scope"), selection: $engine.scope) {
                         ForEach(SearchScope.allCases) { scope in
                             Label(scope.label, systemImage: scope.systemImage).tag(scope)
                         }
@@ -90,9 +90,9 @@ struct SearchHeaderView: View {
                     .controlSize(.small)
                     .labelsHidden()
                     .fixedSize()
-                    .help("검색 범위")
+                    .help(tr("검색 범위", "Search scope"))
 
-                    Picker("종류", selection: $engine.category) {
+                    Picker(tr("종류", "Kind"), selection: $engine.category) {
                         ForEach(SearchCategory.allCases) { category in
                             Label(category.label, systemImage: category.systemImage).tag(category)
                         }
@@ -101,7 +101,7 @@ struct SearchHeaderView: View {
                     .controlSize(.small)
                     .labelsHidden()
                     .fixedSize()
-                    .help("파일 종류")
+                    .help(tr("파일 종류", "File kind"))
                 }
 
                 Spacer(minLength: 8)
@@ -111,13 +111,13 @@ struct SearchHeaderView: View {
                         Text(option.label).tag(option)
                     }
                 } label: {
-                    Label("정렬", systemImage: "arrow.up.arrow.down")
+                    Label(tr("정렬", "Sort"), systemImage: "arrow.up.arrow.down")
                 }
                 .pickerStyle(.menu)
                 .controlSize(.small)
                 .labelsHidden()
                 .fixedSize()
-                .help("정렬 기준")
+                .help(tr("정렬 기준", "Sort order"))
             }
         }
         .padding(.horizontal, 16)

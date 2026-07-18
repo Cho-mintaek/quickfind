@@ -29,12 +29,12 @@
 	<key>NSHumanReadableCopyright</key>
 	<string>© 2026 mintaek</string>
 	<key>NSDownloadsFolderUsageDescription</key>
-	<string>다운로드 폴더의 파일을 검색 결과에 포함하려면 접근 권한이 필요합니다.</string>
+	<string>다운로드 폴더의 파일을 검색 결과에 포함하려면 접근 권한이 필요합니다. / Needed to include your Downloads folder in search results.</string>
 	<key>NSDesktopFolderUsageDescription</key>
-	<string>데스크탑 폴더의 파일을 검색 결과에 포함하려면 접근 권한이 필요합니다.</string>
+	<string>데스크탑 폴더의 파일을 검색 결과에 포함하려면 접근 권한이 필요합니다. / Needed to include your Desktop folder in search results.</string>
 	<key>NSDocumentsFolderUsageDescription</key>
-	<string>문서 폴더의 파일을 검색 결과에 포함하려면 접근 권한이 필요합니다.</string>
+	<string>문서 폴더의 파일을 검색 결과에 포함하려면 접근 권한이 필요합니다. / Needed to include your Documents folder in search results.</string>
 	<key>NSAppleEventsUsageDescription</key>
-	<string>휴지통 비우기를 Finder 를 통해 실행하기 위해 필요합니다.</string>
+	<string>휴지통 비우기를 Finder 를 통해 실행하기 위해 필요합니다. / Needed to empty the Trash via Finder.</string>
 </dict>
 </plist>

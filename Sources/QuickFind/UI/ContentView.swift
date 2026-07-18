@@ -38,22 +38,22 @@ struct ContentView: View {
                     splitEnabled.toggle()
                 } label: {
                     Label(
-                        splitEnabled ? "분할 닫기" : "화면 분할",
+                        splitEnabled ? tr("분할 닫기", "Close Split") : tr("화면 분할", "Split View"),
                         systemImage: splitEnabled
                             ? "rectangle.split.2x1.slash" : "rectangle.split.2x1"
                     )
                 }
                 .help(splitEnabled
-                      ? "분할 패널을 닫습니다"
-                      : "독립 검색 패널을 하나 더 엽니다 (다른 폴더를 동시에 검색)")
+                      ? tr("분할 패널을 닫습니다", "Close the split pane")
+                      : tr("독립 검색 패널을 하나 더 엽니다 (다른 폴더를 동시에 검색)", "Open a second independent search pane"))
             }
             ToolbarItem {
                 Button {
                     openWindow(id: "main")
                 } label: {
-                    Label("새 검색 창", systemImage: "macwindow.badge.plus")
+                    Label(tr("새 검색 창", "New Search Window"), systemImage: "macwindow.badge.plus")
                 }
-                .help("독립 검색 창을 새로 엽니다 (⌘N)")
+                .help(tr("독립 검색 창을 새로 엽니다 (⌘N)", "Open a new independent search window (⌘N)"))
             }
         }
         .background(WindowAccessor { window in

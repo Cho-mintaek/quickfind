@@ -60,19 +60,20 @@ struct ResultListView: View {
                 }
                 .contextMenu {
                     let targets = actionTargets(for: result)
-                    let countPrefix = targets.count > 1 ? "\(targets.count)개 항목 " : ""
-                    Button("\(countPrefix)열기") {
+                    let many = targets.count > 1
+                    let n = targets.count
+                    Button(many ? tr("\(n)개 항목 열기", "Open \(n) Items") : tr("열기", "Open")) {
                         targets.forEach(FileActions.open)
                     }
-                    Button("Finder에서 보기") { FileActions.revealInFinder(targets) }
+                    Button(tr("Finder에서 보기", "Reveal in Finder")) { FileActions.revealInFinder(targets) }
                     Divider()
-                    Button("경로 복사") { FileActions.copyPath(result) }
-                    Button("파일 복사") { FileActions.copyFile(result) }
+                    Button(tr("경로 복사", "Copy Path")) { FileActions.copyPath(result) }
+                    Button(tr("파일 복사", "Copy File")) { FileActions.copyFile(result) }
                     Divider()
                     Button(
                         engine.showingTrash
-                            ? "\(countPrefix)영구 삭제"
-                            : "\(countPrefix)휴지통으로 이동",
+                            ? (many ? tr("\(n)개 항목 영구 삭제", "Delete \(n) Items Permanently") : tr("영구 삭제", "Delete Permanently"))
+                            : (many ? tr("\(n)개 항목 휴지통으로 이동", "Move \(n) Items to Trash") : tr("휴지통으로 이동", "Move to Trash")),
                         role: .destructive
                     ) {
                         requestTrash(targets)

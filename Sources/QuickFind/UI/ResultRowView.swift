@@ -29,7 +29,7 @@ struct ResultRowView: View {
                     .font(.system(size: 11, weight: .medium))
                     .foregroundStyle(.secondary)
                 if showLastUsed {
-                    Text("사용: \(Formatters.relative(result.lastUsed))")
+                    Text(tr("사용: ", "Used: ") + Formatters.relative(result.lastUsed))
                         .font(.system(size: 11))
                         .foregroundStyle(.tertiary)
                 } else {
@@ -47,12 +47,12 @@ struct ResultRowView: View {
     }
 
     private var sizeText: String {
-        if result.isDirectory { return "폴더" }
+        if result.isDirectory { return tr("폴더", "Folder") }
         let logical = Formatters.size(result.size)
         // 실제 점유가 논리 크기의 90% 미만이면(sparse 등) 함께 표시
         if let allocated, let size = result.size, size > 0,
            Double(allocated) < Double(size) * 0.9 {
-            return "\(logical) (실제 \(Formatters.size(allocated)))"
+            return logical + tr(" (실제 ", " (on disk ") + Formatters.size(allocated) + ")"
         }
         return logical
     }

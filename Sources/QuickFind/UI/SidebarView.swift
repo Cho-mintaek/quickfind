@@ -5,7 +5,7 @@ struct SidebarView: View {
 
     var body: some View {
         List {
-            Section("종류") {
+            Section(tr("종류", "Kind")) {
                 ForEach(SearchCategory.allCases) { category in
                     Button {
                         engine.category = category
@@ -20,7 +20,7 @@ struct SidebarView: View {
                 }
             }
 
-            Section("검색 범위") {
+            Section(tr("검색 범위", "Scope")) {
                 ForEach(SearchScope.allCases) { scope in
                     Button {
                         engine.scope = scope
@@ -35,7 +35,7 @@ struct SidebarView: View {
                 }
             }
 
-            Section("저장공간 정리") {
+            Section(tr("저장공간 정리", "Storage Cleanup")) {
                 ForEach(CleanupPreset.allCases) { preset in
                     let selected = engine.cleanupPreset == preset
                     Button {
@@ -50,14 +50,14 @@ struct SidebarView: View {
                     .buttonStyle(.plain)
                     .listRowBackground(rowBackground(selected: selected))
                     .foregroundStyle(selected ? Color.accentColor : .primary)
-                    .help(selected ? "클릭하면 선택이 해제됩니다" : preset.help)
+                    .help(selected ? tr("클릭하면 선택이 해제됩니다", "Click again to deselect") : preset.help)
                 }
 
                 Button {
                     engine.showingTrash.toggle()
                 } label: {
                     deselectableRow(
-                        label: "휴지통",
+                        label: tr("휴지통", "Trash"),
                         systemImage: "trash",
                         selected: engine.showingTrash
                     )
@@ -65,7 +65,7 @@ struct SidebarView: View {
                 .buttonStyle(.plain)
                 .listRowBackground(rowBackground(selected: engine.showingTrash))
                 .foregroundStyle(engine.showingTrash ? Color.accentColor : .primary)
-                .help(engine.showingTrash ? "클릭하면 선택이 해제됩니다" : "휴지통 안 파일을 보고 영구 삭제하거나 비웁니다")
+                .help(engine.showingTrash ? tr("클릭하면 선택이 해제됩니다", "Click again to deselect") : tr("휴지통 안 파일을 보고 영구 삭제하거나 비웁니다", "Browse Trash, delete permanently, or empty it"))
             }
         }
         .listStyle(.sidebar)

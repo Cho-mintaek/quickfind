@@ -17,9 +17,9 @@ struct MultiSelectionPane: View {
             Image(systemName: "square.stack.3d.up.fill")
                 .font(.system(size: 40, weight: .light))
                 .foregroundStyle(.secondary)
-            Text("\(Formatters.count(results.count))개 항목 선택됨")
+            Text(tr("\(Formatters.count(results.count))개 항목 선택됨", "\(Formatters.count(results.count)) items selected"))
                 .font(.system(size: 15, weight: .semibold))
-            Text("합계 \(Formatters.size(totalBytes))")
+            Text(tr("합계 ", "Total ") + Formatters.size(totalBytes))
                 .font(.system(size: 13))
                 .foregroundStyle(.secondary)
             Spacer()
@@ -28,14 +28,14 @@ struct MultiSelectionPane: View {
                 Button {
                     FileActions.revealInFinder(results)
                 } label: {
-                    Label("Finder에서 보기", systemImage: "folder")
+                    Label(tr("Finder에서 보기", "Reveal in Finder"), systemImage: "folder")
                         .frame(maxWidth: .infinity)
                 }
                 Button(role: .destructive) {
                     requestTrash(results)
                 } label: {
                     Label(
-                        permanentDelete ? "영구 삭제" : "휴지통으로 이동",
+                        permanentDelete ? tr("영구 삭제", "Delete Permanently") : tr("휴지통으로 이동", "Move to Trash"),
                         systemImage: permanentDelete ? "trash.slash" : "trash"
                     )
                     .frame(maxWidth: .infinity)
@@ -70,15 +70,15 @@ struct PreviewPane: View {
                     .lineLimit(2)
 
                 Grid(alignment: .leading, horizontalSpacing: 12, verticalSpacing: 4) {
-                    metadataRow(label: "종류", value: result.kind ?? "—")
-                    metadataRow(label: "크기", value: result.isDirectory ? "폴더" : Formatters.size(result.size))
+                    metadataRow(label: tr("종류", "Kind"), value: result.kind ?? "—")
+                    metadataRow(label: tr("크기", "Size"), value: result.isDirectory ? tr("폴더", "Folder") : Formatters.size(result.size))
                     if let allocated {
-                        metadataRow(label: "실제 점유", value: Formatters.size(allocated))
+                        metadataRow(label: tr("실제 점유", "On Disk"), value: Formatters.size(allocated))
                     }
-                    metadataRow(label: "생성일", value: Formatters.absolute(result.created))
-                    metadataRow(label: "수정일", value: Formatters.absolute(result.modified))
-                    metadataRow(label: "마지막 사용", value: Formatters.absolute(result.lastUsed))
-                    metadataRow(label: "위치", value: result.displayParentPath)
+                    metadataRow(label: tr("생성일", "Created"), value: Formatters.absolute(result.created))
+                    metadataRow(label: tr("수정일", "Modified"), value: Formatters.absolute(result.modified))
+                    metadataRow(label: tr("마지막 사용", "Last Used"), value: Formatters.absolute(result.lastUsed))
+                    metadataRow(label: tr("위치", "Location"), value: result.displayParentPath)
                 }
 
                 Grid(horizontalSpacing: 8, verticalSpacing: 8) {
@@ -86,13 +86,13 @@ struct PreviewPane: View {
                         Button {
                             FileActions.open(result)
                         } label: {
-                            Label("열기", systemImage: "arrow.up.forward.app")
+                            Label(tr("열기", "Open"), systemImage: "arrow.up.forward.app")
                                 .frame(maxWidth: .infinity)
                         }
                         Button {
                             FileActions.revealInFinder(result)
                         } label: {
-                            Label("Finder에서 보기", systemImage: "folder")
+                            Label(tr("Finder에서 보기", "Reveal in Finder"), systemImage: "folder")
                                 .frame(maxWidth: .infinity)
                         }
                     }
@@ -100,14 +100,14 @@ struct PreviewPane: View {
                         Button {
                             FileActions.copyPath(result)
                         } label: {
-                            Label("경로 복사", systemImage: "doc.on.doc")
+                            Label(tr("경로 복사", "Copy Path"), systemImage: "doc.on.doc")
                                 .frame(maxWidth: .infinity)
                         }
                         Button(role: .destructive) {
                             requestTrash([result])
                         } label: {
                             Label(
-                                permanentDelete ? "영구 삭제" : "휴지통으로 이동",
+                                permanentDelete ? tr("영구 삭제", "Delete Permanently") : tr("휴지통으로 이동", "Move to Trash"),
                                 systemImage: permanentDelete ? "trash.slash" : "trash"
                             )
                             .frame(maxWidth: .infinity)

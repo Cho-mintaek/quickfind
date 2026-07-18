@@ -12,10 +12,10 @@ enum SortOption: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .modifiedDesc: return "최근 수정순"
-        case .nameAsc: return "이름순"
-        case .sizeDesc: return "크기순"
-        case .lastUsedAsc: return "오래 사용 안 한 순"
+        case .modifiedDesc: return tr("최근 수정순", "Recently Modified")
+        case .nameAsc: return tr("이름순", "Name")
+        case .sizeDesc: return tr("크기순", "Size")
+        case .lastUsedAsc: return tr("오래 사용 안 한 순", "Least Recently Used")
         }
     }
 

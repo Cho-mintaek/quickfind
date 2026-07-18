@@ -11,10 +11,10 @@ enum CleanupPreset: String, CaseIterable, Identifiable {
 
     var label: String {
         switch self {
-        case .largeFiles: return "대용량 파일"
-        case .unusedFiles: return "오래 사용 안 한 파일"
-        case .oldDownloads: return "오래된 다운로드"
-        case .diskImages: return "설치 파일·디스크 이미지"
+        case .largeFiles: return tr("대용량 파일", "Large Files")
+        case .unusedFiles: return tr("오래 사용 안 한 파일", "Unused Files")
+        case .oldDownloads: return tr("오래된 다운로드", "Old Downloads")
+        case .diskImages: return tr("설치 파일·디스크 이미지", "Installers & Disk Images")
         }
     }
 
@@ -29,10 +29,10 @@ enum CleanupPreset: String, CaseIterable, Identifiable {
 
     var help: String {
         switch self {
-        case .largeFiles: return "100MB 이상 파일을 크기순으로 보여줍니다"
-        case .unusedFiles: return "1년 이상 열지 않은 1MB 이상 파일"
-        case .oldDownloads: return "다운로드 폴더에 6개월 이상 방치된 파일"
-        case .diskImages: return "dmg·pkg·iso 등 설치 후 지워도 되는 파일"
+        case .largeFiles: return tr("100MB 이상 파일을 크기순으로 보여줍니다", "Files over 100MB, sorted by size")
+        case .unusedFiles: return tr("1년 이상 열지 않은 1MB 이상 파일", "Files over 1MB not opened in a year")
+        case .oldDownloads: return tr("다운로드 폴더에 6개월 이상 방치된 파일", "Files sitting in Downloads for 6+ months")
+        case .diskImages: return tr("dmg·pkg·iso 등 설치 후 지워도 되는 파일", "dmg, pkg, iso — usually safe to delete after install")
         }
     }
 
