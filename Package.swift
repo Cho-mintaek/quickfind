@@ -11,6 +11,7 @@ let package = Package(
             linkerSettings: [
                 .linkedFramework("Quartz"),
                 .linkedFramework("QuickLookThumbnailing"),
+                .linkedFramework("Carbon"),
             ]
         )
     ]

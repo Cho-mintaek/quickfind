@@ -52,6 +52,12 @@ struct ContentView: View {
             }
         }
         .navigationTitle("QuickFind")
+        .background(WindowAccessor { window in
+            WindowManager.shared.adopt(window)
+        })
+        .onReceive(NotificationCenter.default.publisher(for: .qfFocusSearch)) { _ in
+            searchFocused = true
+        }
         .onAppear {
             searchFocused = true
             applyLaunchArguments()

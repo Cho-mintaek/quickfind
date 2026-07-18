@@ -3,6 +3,13 @@ import SwiftUI
 extension Notification.Name {
     /// 보호 폴더(다운로드·데스크탑·문서) 접근 프로브 완료
     static let qfFolderAccessProbed = Notification.Name("qfFolderAccessProbed")
+    /// 전역 단축키/메뉴바로 창을 열 때 검색창 포커스 요청
+    static let qfFocusSearch = Notification.Name("qfFocusSearch")
+}
+
+enum SettingsKey {
+    static let hotKeyEnabled = "hotKeyEnabled"
+    static let hideDockIcon = "hideDockIcon"
 }
 
 @main
@@ -23,12 +30,29 @@ struct QuickFindApp: App {
     }
 }
 
-/// 앱 활성화 처리 — 번들 밖에서 실행돼도 창이 앞으로 오도록 한다
+/// 앱 수명주기: 활성화, 전역 단축키, 메뉴바 상주
 final class AppDelegate: NSObject, NSApplicationDelegate {
+    private var statusItem: NSStatusItem?
+
     func applicationDidFinishLaunching(_ notification: Notification) {
-        NSApp.setActivationPolicy(.regular)
+        let defaults = UserDefaults.standard
+        if defaults.object(forKey: SettingsKey.hotKeyEnabled) == nil {
+            defaults.set(true, forKey: SettingsKey.hotKeyEnabled)
+        }
+
+        NSApp.setActivationPolicy(
+            defaults.bool(forKey: SettingsKey.hideDockIcon) ? .accessory : .regular
+        )
         NSApp.activate(ignoringOtherApps: true)
         requestProtectedFolderAccess()
+        setupStatusItem()
+
+        HotKeyManager.shared.onHotKey = {
+            Task { @MainActor in WindowManager.shared.toggle() }
+        }
+        if defaults.bool(forKey: SettingsKey.hotKeyEnabled) {
+            HotKeyManager.shared.register()
+        }
     }
 
     /// 다운로드·데스크탑·문서는 TCC 보호 폴더라 접근 권한이 없으면
@@ -46,8 +70,113 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         NotificationCenter.default.post(name: .qfFolderAccessProbed, object: nil)
     }
 
+    /// 창을 닫아도 종료하지 않는다 — 메뉴바·전역 단축키로 상주
     func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool {
-        true
+        false
+    }
+
+    /// Dock 아이콘 클릭 등으로 재활성화되면 창을 다시 보여준다
+    func applicationShouldHandleReopen(_ sender: NSApplication, hasVisibleWindows: Bool) -> Bool {
+        if !hasVisibleWindows {
+            Task { @MainActor in WindowManager.shared.show() }
+        }
+        return true
+    }
+
+    // MARK: - 메뉴바
+
+    private func setupStatusItem() {
+        let item = NSStatusBar.system.statusItem(withLength: NSStatusItem.squareLength)
+        if let button = item.button {
+            button.image = NSImage(
+                systemSymbolName: "magnifyingglass.circle.fill",
+                accessibilityDescription: "QuickFind"
+            )
+            button.action = #selector(statusItemClicked)
+            button.target = self
+            button.sendAction(on: [.leftMouseUp, .rightMouseUp])
+        }
+        statusItem = item
+    }
+
+    @objc private func statusItemClicked() {
+        if NSApp.currentEvent?.type == .rightMouseUp {
+            showStatusMenu()
+        } else {
+            Task { @MainActor in WindowManager.shared.toggle() }
+        }
+    }
+
+    private func showStatusMenu() {
+        let defaults = UserDefaults.standard
+        let menu = NSMenu()
+
+        let openItem = NSMenuItem(
+            title: "열기 / 숨기기 (⌥Space)",
+            action: #selector(menuToggleWindow), keyEquivalent: ""
+        )
+        openItem.target = self
+        menu.addItem(openItem)
+        menu.addItem(.separator())
+
+        let hotKeyItem = NSMenuItem(
+            title: "전역 단축키 ⌥Space 사용",
+            action: #selector(menuToggleHotKey), keyEquivalent: ""
+        )
+        hotKeyItem.target = self
+        hotKeyItem.state = defaults.bool(forKey: SettingsKey.hotKeyEnabled) ? .on : .off
+        menu.addItem(hotKeyItem)
+
+        let dockItem = NSMenuItem(
+            title: "Dock 아이콘 숨기기",
+            action: #selector(menuToggleDockIcon), keyEquivalent: ""
+        )
+        dockItem.target = self
+        dockItem.state = defaults.bool(forKey: SettingsKey.hideDockIcon) ? .on : .off
+        menu.addItem(dockItem)
+
+        menu.addItem(.separator())
+        let quitItem = NSMenuItem(
+            title: "QuickFind 종료",
+            action: #selector(menuQuit), keyEquivalent: "q"
+        )
+        quitItem.target = self
+        menu.addItem(quitItem)
+
+        // 메뉴를 일회성으로 붙였다 떼어 좌클릭 토글이 계속 동작하게 한다
+        statusItem?.menu = menu
+        statusItem?.button?.performClick(nil)
+        statusItem?.menu = nil
+    }
+
+    @objc private func menuToggleWindow() {
+        Task { @MainActor in WindowManager.shared.toggle() }
+    }
+
+    @objc private func menuToggleHotKey() {
+        let defaults = UserDefaults.standard
+        let enabled = !defaults.bool(forKey: SettingsKey.hotKeyEnabled)
+        defaults.set(enabled, forKey: SettingsKey.hotKeyEnabled)
+        if enabled {
+            HotKeyManager.shared.register()
+        } else {
+            HotKeyManager.shared.unregister()
+        }
+    }
+
+    @objc private func menuToggleDockIcon() {
+        let defaults = UserDefaults.standard
+        let hide = !defaults.bool(forKey: SettingsKey.hideDockIcon)
+        defaults.set(hide, forKey: SettingsKey.hideDockIcon)
+        NSApp.setActivationPolicy(hide ? .accessory : .regular)
+        if hide {
+            // 정책 전환 직후 창이 뒤로 숨는 것 방지
+            Task { @MainActor in WindowManager.shared.show() }
+        }
+    }
+
+    @objc private func menuQuit() {
+        NSApp.terminate(nil)
     }
 }
 
