@@ -3,6 +3,8 @@ import SwiftUI
 struct SearchHeaderView: View {
     @ObservedObject var engine: SearchEngine
     @FocusState.Binding var searchFocused: Bool
+    /// 사이드바가 없는 분할 패널에서 범위·종류를 고를 수 있는 컴팩트 피커 표시
+    var showsFilterPickers: Bool = false
     let requestEmptyTrash: () -> Void
 
     var body: some View {
@@ -70,6 +72,30 @@ struct SearchHeaderView: View {
                     }
                     .toggleStyle(.checkbox)
                     .help("파일 이름뿐 아니라 문서 내부 텍스트에서도 검색합니다")
+                }
+
+                if showsFilterPickers {
+                    Picker(selection: $engine.scope) {
+                        ForEach(SearchScope.allCases) { scope in
+                            Label(scope.label, systemImage: scope.systemImage).tag(scope)
+                        }
+                    } label: {
+                        Label("범위", systemImage: "folder")
+                    }
+                    .pickerStyle(.menu)
+                    .controlSize(.small)
+                    .fixedSize()
+
+                    Picker(selection: $engine.category) {
+                        ForEach(SearchCategory.allCases) { category in
+                            Label(category.label, systemImage: category.systemImage).tag(category)
+                        }
+                    } label: {
+                        Label("종류", systemImage: "line.3.horizontal.decrease.circle")
+                    }
+                    .pickerStyle(.menu)
+                    .controlSize(.small)
+                    .fixedSize()
                 }
 
                 Spacer()

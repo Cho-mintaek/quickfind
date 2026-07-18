@@ -1,166 +1,104 @@
 import SwiftUI
 
 struct ContentView: View {
-    @StateObject private var engine = SearchEngine()
-    @State private var selection: Set<SearchResult.ID> = []
-    @FocusState private var searchFocused: Bool
+    @StateObject private var primaryEngine = SearchEngine()
+    @StateObject private var secondaryEngine = SearchEngine()
+    @State private var splitEnabled = false
+    @Environment(\.openWindow) private var openWindow
 
-    @State private var removalCandidates: [SearchResult] = []
-    @State private var removalIsPermanent = false
-    @State private var showRemovalConfirm = false
-    @State private var showEmptyTrashConfirm = false
-    @State private var failureCount: Int?
-    @State private var emptyTrashError: String?
+    /// 실행 인자 주입은 최초 창에서 한 번만
+    private static var launchArgumentsApplied = false
 
     var body: some View {
         NavigationSplitView {
-            SidebarView(engine: engine)
+            SidebarView(engine: primaryEngine)
         } detail: {
-            VStack(spacing: 0) {
-                SearchHeaderView(
-                    engine: engine,
-                    searchFocused: $searchFocused,
-                    requestEmptyTrash: { showEmptyTrashConfirm = true }
+            HSplitView {
+                SearchPaneView(
+                    engine: primaryEngine,
+                    respondsToGlobalFocus: true
                 )
-                Divider()
-                HSplitView {
-                    ResultListView(
-                        engine: engine,
-                        selection: $selection,
-                        requestTrash: requestRemoval
+                .frame(minWidth: 480)
+                if splitEnabled {
+                    SearchPaneView(
+                        engine: secondaryEngine,
+                        showsFilterPickers: true
                     )
-                    if selectedResults.count > 1 {
-                        MultiSelectionPane(
-                            results: selectedResults,
-                            permanentDelete: engine.showingTrash,
-                            requestTrash: requestRemoval
-                        )
-                    } else if let selected = selectedResults.first {
-                        PreviewPane(
-                            result: selected,
-                            permanentDelete: engine.showingTrash,
-                            requestTrash: requestRemoval
-                        )
-                    }
+                    .frame(minWidth: 480)
                 }
-                Divider()
-                StatusBarView(
-                    engine: engine,
-                    selectionCount: selectedResults.count,
-                    selectionBytes: selectedResults.reduce(0) { $0 + ($1.size ?? 0) }
-                )
             }
         }
         .navigationTitle("QuickFind")
+        .toolbar {
+            ToolbarItem {
+                Button {
+                    splitEnabled.toggle()
+                } label: {
+                    Label(
+                        splitEnabled ? "분할 닫기" : "화면 분할",
+                        systemImage: splitEnabled
+                            ? "rectangle.split.2x1.slash" : "rectangle.split.2x1"
+                    )
+                }
+                .help(splitEnabled
+                      ? "분할 패널을 닫습니다"
+                      : "독립 검색 패널을 하나 더 엽니다 (다른 폴더를 동시에 검색)")
+            }
+            ToolbarItem {
+                Button {
+                    openWindow(id: "main")
+                } label: {
+                    Label("새 검색 창", systemImage: "macwindow.badge.plus")
+                }
+                .help("독립 검색 창을 새로 엽니다 (⌘N)")
+            }
+        }
         .background(WindowAccessor { window in
             WindowManager.shared.adopt(window)
         })
-        .onReceive(NotificationCenter.default.publisher(for: .qfFocusSearch)) { _ in
-            searchFocused = true
+        .onReceive(NotificationCenter.default.publisher(for: .qfNewWindow)) { notification in
+            // 여러 창이 동시에 반응해 창이 중복 생성되지 않도록 요청을 선점한 창만 연다
+            if let id = notification.object as? UUID,
+               WindowManager.shared.claimNewWindowRequest(id) {
+                openWindow(id: "main")
+            }
+        }
+        .onChange(of: splitEnabled) { _, enabled in
+            // 분할을 켰을 때 창이 좁으면 두 패널이 답답하지 않게 넓혀준다
+            guard enabled, let window = NSApp.keyWindow, window.frame.width < 1600 else { return }
+            var frame = window.frame
+            let targetWidth: CGFloat = 1600
+            let screenWidth = window.screen?.visibleFrame.width ?? targetWidth
+            frame.size.width = min(targetWidth, screenWidth)
+            frame.origin.x = max(window.screen?.visibleFrame.minX ?? 0,
+                                 frame.origin.x - (frame.width - window.frame.width) / 2)
+            window.setFrame(frame, display: true, animate: true)
         }
         .onAppear {
-            searchFocused = true
             applyLaunchArguments()
         }
-        .focusedSceneValue(\.focusSearchAction) {
-            searchFocused = true
-        }
-        .alert(
-            removalIsPermanent ? "영구 삭제" : "휴지통으로 이동",
-            isPresented: $showRemovalConfirm
-        ) {
-            Button("취소", role: .cancel) {}
-            Button(removalIsPermanent ? "삭제" : "이동", role: .destructive) {
-                performRemoval()
-            }
-        } message: {
-            Text(removalConfirmMessage)
-        }
-        .alert("휴지통 비우기", isPresented: $showEmptyTrashConfirm) {
-            Button("취소", role: .cancel) {}
-            Button("비우기", role: .destructive) { performEmptyTrash() }
-        } message: {
-            Text("휴지통의 모든 항목을 영구적으로 삭제합니다. 이 동작은 되돌릴 수 없습니다.")
-        }
-        .alert(
-            "일부 항목을 처리하지 못했습니다",
-            isPresented: Binding(
-                get: { failureCount != nil },
-                set: { if !$0 { failureCount = nil } }
-            )
-        ) {
-            Button("확인", role: .cancel) {}
-        } message: {
-            Text("\(failureCount ?? 0)개 항목을 처리하지 못했습니다. 권한이나 파일 상태를 확인해주세요.")
-        }
-        .alert(
-            "휴지통을 비우지 못했습니다",
-            isPresented: Binding(
-                get: { emptyTrashError != nil },
-                set: { if !$0 { emptyTrashError = nil } }
-            )
-        ) {
-            Button("확인", role: .cancel) {}
-        } message: {
-            Text(emptyTrashError ?? "")
-        }
-    }
-
-    private var selectedResults: [SearchResult] {
-        engine.results.filter { selection.contains($0.id) }
-    }
-
-    private var removalConfirmMessage: String {
-        let count = removalCandidates.count
-        let bytes = removalCandidates.reduce(Int64(0)) { $0 + ($1.size ?? 0) }
-        let sizeText = bytes > 0 ? " (합계 \(Formatters.size(bytes)))" : ""
-        if removalIsPermanent {
-            return "\(count)개 항목\(sizeText)을 영구적으로 삭제합니다. 이 동작은 되돌릴 수 없습니다."
-        }
-        return "\(count)개 항목\(sizeText)을 휴지통으로 이동합니다. 휴지통에서 복원할 수 있습니다."
-    }
-
-    private func requestRemoval(_ results: [SearchResult]) {
-        guard !results.isEmpty else { return }
-        removalCandidates = results
-        removalIsPermanent = engine.showingTrash
-        showRemovalConfirm = true
-    }
-
-    private func performRemoval() {
-        let outcome = removalIsPermanent
-            ? FileActions.deletePermanently(removalCandidates)
-            : FileActions.trash(removalCandidates)
-        // Spotlight 라이브 업데이트를 기다리지 않고 성공 항목을 즉시 리스트에서 제거
-        engine.removeFromResults(ids: outcome.succeeded)
-        selection.subtract(outcome.succeeded)
-        removalCandidates = []
-        if outcome.failures > 0 {
-            failureCount = outcome.failures
-        }
-    }
-
-    private func performEmptyTrash() {
-        emptyTrashError = FileActions.emptyTrash()
-        selection = []
-        engine.refresh()
     }
 
     private func applyLaunchArguments() {
+        guard !Self.launchArgumentsApplied else { return }
+        Self.launchArgumentsApplied = true
         // UI 자동 검증용 초기 상태 주입 (일반 실행에는 영향 없음)
         if let initial = ProcessInfo.processInfo.environment["QUICKFIND_INITIAL_QUERY"] {
-            engine.queryText = initial
+            primaryEngine.queryText = initial
         } else if let index = CommandLine.arguments.firstIndex(of: "--query"),
                   CommandLine.arguments.indices.contains(index + 1) {
-            engine.queryText = CommandLine.arguments[index + 1]
+            primaryEngine.queryText = CommandLine.arguments[index + 1]
         }
         if let index = CommandLine.arguments.firstIndex(of: "--preset"),
            CommandLine.arguments.indices.contains(index + 1),
            let preset = CleanupPreset(rawValue: CommandLine.arguments[index + 1]) {
-            engine.cleanupPreset = preset
+            primaryEngine.cleanupPreset = preset
         }
         if CommandLine.arguments.contains("--trash") {
-            engine.showingTrash = true
+            primaryEngine.showingTrash = true
+        }
+        if CommandLine.arguments.contains("--split") {
+            splitEnabled = true
         }
     }
 }

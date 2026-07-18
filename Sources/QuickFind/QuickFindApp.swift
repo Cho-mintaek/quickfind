@@ -5,6 +5,8 @@ extension Notification.Name {
     static let qfFolderAccessProbed = Notification.Name("qfFolderAccessProbed")
     /// 전역 단축키/메뉴바로 창을 열 때 검색창 포커스 요청
     static let qfFocusSearch = Notification.Name("qfFocusSearch")
+    /// 새 검색 창 열기 요청 (object: UUID — 중복 생성 방지용 선점 토큰)
+    static let qfNewWindow = Notification.Name("qfNewWindow")
 }
 
 enum SettingsKey {
@@ -18,7 +20,7 @@ struct QuickFindApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
 
     var body: some Scene {
-        WindowGroup {
+        WindowGroup(id: "main") {
             ContentView()
                 .frame(minWidth: 900, minHeight: 560)
         }
@@ -130,6 +132,13 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         )
         openItem.target = self
         menu.addItem(openItem)
+
+        let newWindowItem = NSMenuItem(
+            title: "새 검색 창",
+            action: #selector(menuNewWindow), keyEquivalent: ""
+        )
+        newWindowItem.target = self
+        menu.addItem(newWindowItem)
         menu.addItem(.separator())
 
         let hotKeyMenu = NSMenu()
@@ -180,6 +189,14 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     @objc private func menuToggleWindow() {
         Task { @MainActor in WindowManager.shared.toggle() }
+    }
+
+    @objc private func menuNewWindow() {
+        Task { @MainActor in
+            // 창을 먼저 앞으로 가져와야 알림 수신자(ContentView)가 살아 있다
+            WindowManager.shared.show()
+            WindowManager.shared.requestNewWindow()
+        }
     }
 
     @objc private func menuSelectHotKey(_ sender: NSMenuItem) {
