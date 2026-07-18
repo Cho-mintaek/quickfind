@@ -1,0 +1,129 @@
+import SwiftUI
+import AppKit
+
+/// 검색 전 / 결과 없음 상태 화면
+struct EmptyStateView: View {
+    let icon: String
+    let title: String
+    let message: String
+    var showShortcuts: Bool = false
+
+    static var initial: EmptyStateView {
+        EmptyStateView(
+            icon: "sparkle.magnifyingglass",
+            title: "무엇이든 빠르게 찾아보세요",
+            message: "Spotlight 인덱스를 사용해 타이핑하는 즉시 결과가 나타납니다.",
+            showShortcuts: true
+        )
+    }
+
+    static func noResults(query: String) -> EmptyStateView {
+        let trimmed = query.trimmingCharacters(in: .whitespaces)
+        return EmptyStateView(
+            icon: "questionmark.folder",
+            title: trimmed.isEmpty ? "조건에 맞는 파일 없음" : "‘\(trimmed)’ 결과 없음",
+            message: "검색어를 바꾸거나, 사이드바에서 종류·검색 범위를 넓혀보세요."
+        )
+    }
+
+    /// 휴지통 접근 권한 안내 (전체 디스크 접근 필요)
+    static func trashAccessDenied(retry: @escaping () -> Void) -> some View {
+        VStack(spacing: 14) {
+            Image(systemName: "lock.shield")
+                .font(.system(size: 42, weight: .light))
+                .foregroundStyle(.tertiary)
+            VStack(spacing: 6) {
+                Text("휴지통을 보려면 권한이 필요합니다")
+                    .font(.system(size: 16, weight: .semibold))
+                Text("macOS 는 휴지통 내용 읽기에 '전체 디스크 접근 권한'을 요구합니다.\n설정에서 QuickFind 를 켠 뒤, 앱을 재시작하거나 '다시 확인'을 눌러주세요.")
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+            HStack(spacing: 10) {
+                Button("전체 디스크 접근 설정 열기") {
+                    let url = URL(string: "x-apple.systempreferences:com.apple.preference.security?Privacy_AllFiles")!
+                    NSWorkspace.shared.open(url)
+                }
+                .keyboardShortcut(.defaultAction)
+                Button("다시 확인", action: retry)
+            }
+            .padding(.top, 6)
+            Text("권한 없이도 '휴지통 비우기'는 Finder 를 통해 동작합니다.")
+                .font(.system(size: 11))
+                .foregroundStyle(.tertiary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(40)
+    }
+
+    /// 휴지통이 비어 있음
+    static var trashEmpty: EmptyStateView {
+        EmptyStateView(
+            icon: "trash",
+            title: "휴지통이 비어 있습니다",
+            message: "삭제한 파일이 여기에 표시되고, 영구 삭제하거나 비울 수 있습니다."
+        )
+    }
+
+    /// 검색 진행 중 (아직 결과 없음)
+    static var loading: some View {
+        VStack(spacing: 16) {
+            ProgressView()
+                .controlSize(.large)
+            Text("검색 중…")
+                .font(.system(size: 14, weight: .medium))
+                .foregroundStyle(.secondary)
+            Text("Spotlight 인덱스에서 결과를 모으고 있습니다")
+                .font(.system(size: 12))
+                .foregroundStyle(.tertiary)
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+    }
+
+    var body: some View {
+        VStack(spacing: 14) {
+            Image(systemName: icon)
+                .font(.system(size: 42, weight: .light))
+                .foregroundStyle(.tertiary)
+
+            VStack(spacing: 6) {
+                Text(title)
+                    .font(.system(size: 16, weight: .semibold))
+                Text(message)
+                    .font(.system(size: 12))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+            }
+
+            if showShortcuts {
+                VStack(alignment: .leading, spacing: 8) {
+                    shortcutRow(keys: "↑ ↓", description: "결과 이동")
+                    shortcutRow(keys: "↩", description: "파일 열기")
+                    shortcutRow(keys: "⌘ ↩", description: "Finder에서 보기")
+                    shortcutRow(keys: "⌘ F", description: "검색창으로 이동")
+                }
+                .padding(.top, 10)
+            }
+        }
+        .frame(maxWidth: .infinity, maxHeight: .infinity)
+        .padding(40)
+    }
+
+    private func shortcutRow(keys: String, description: String) -> some View {
+        HStack(spacing: 10) {
+            Text(keys)
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
+                .padding(.horizontal, 7)
+                .padding(.vertical, 3)
+                .background(
+                    RoundedRectangle(cornerRadius: 5, style: .continuous)
+                        .fill(Color.primary.opacity(0.07))
+                )
+                .frame(width: 64, alignment: .center)
+            Text(description)
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+        }
+    }
+}
