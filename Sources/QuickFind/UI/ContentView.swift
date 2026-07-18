@@ -4,6 +4,7 @@ struct ContentView: View {
     @StateObject private var primaryEngine = SearchEngine()
     @StateObject private var secondaryEngine = SearchEngine()
     @State private var splitEnabled = false
+    @State private var hostWindow: NSWindow?
     @Environment(\.openWindow) private var openWindow
 
     /// 실행 인자 주입은 최초 창에서 한 번만
@@ -18,15 +19,17 @@ struct ContentView: View {
                     engine: primaryEngine,
                     respondsToGlobalFocus: true
                 )
-                .frame(minWidth: 480)
+                .frame(minWidth: 420)
                 if splitEnabled {
                     SearchPaneView(
                         engine: secondaryEngine,
                         showsFilterPickers: true
                     )
-                    .frame(minWidth: 480)
+                    .frame(minWidth: 420)
                 }
             }
+            // 분할 시 두 패널 최소 폭이 확보되도록 창 최소 폭을 함께 올린다
+            .frame(minWidth: splitEnabled ? 1100 : 420)
         }
         .navigationTitle("QuickFind")
         .toolbar {
@@ -54,6 +57,7 @@ struct ContentView: View {
             }
         }
         .background(WindowAccessor { window in
+            hostWindow = window
             WindowManager.shared.adopt(window)
         })
         .onReceive(NotificationCenter.default.publisher(for: .qfNewWindow)) { notification in
@@ -65,13 +69,19 @@ struct ContentView: View {
         }
         .onChange(of: splitEnabled) { _, enabled in
             // 분할을 켰을 때 창이 좁으면 두 패널이 답답하지 않게 넓혀준다
-            guard enabled, let window = NSApp.keyWindow, window.frame.width < 1600 else { return }
+            guard enabled, let window = hostWindow ?? NSApp.keyWindow,
+                  window.frame.width < 1600 else { return }
             var frame = window.frame
             let targetWidth: CGFloat = 1600
-            let screenWidth = window.screen?.visibleFrame.width ?? targetWidth
-            frame.size.width = min(targetWidth, screenWidth)
-            frame.origin.x = max(window.screen?.visibleFrame.minX ?? 0,
-                                 frame.origin.x - (frame.width - window.frame.width) / 2)
+            let screenFrame = window.screen?.visibleFrame
+                ?? NSRect(x: 0, y: 0, width: targetWidth, height: frame.height)
+            frame.size.width = min(targetWidth, screenFrame.width)
+            // 넓힌 뒤에도 화면 밖으로 나가지 않게 좌우 위치 보정
+            frame.origin.x = max(
+                screenFrame.minX,
+                min(frame.origin.x - (frame.width - window.frame.width) / 2,
+                    screenFrame.maxX - frame.width)
+            )
             window.setFrame(frame, display: true, animate: true)
         }
         .onAppear {

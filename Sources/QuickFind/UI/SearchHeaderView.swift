@@ -66,39 +66,45 @@ struct SearchHeaderView: View {
                     .controlSize(.small)
                     .disabled(engine.results.isEmpty && !engine.trashAccessDenied)
                 } else {
+                    // 분할 패널(피커 표시)에서는 좁은 폭에 맞춰 라벨을 줄인다
                     Toggle(isOn: $engine.searchContents) {
-                        Label("파일 내용 포함", systemImage: "doc.text.magnifyingglass")
-                            .font(.system(size: 12))
+                        Label(
+                            showsFilterPickers ? "내용" : "파일 내용 포함",
+                            systemImage: "doc.text.magnifyingglass"
+                        )
+                        .font(.system(size: 12))
                     }
                     .toggleStyle(.checkbox)
+                    .fixedSize()
                     .help("파일 이름뿐 아니라 문서 내부 텍스트에서도 검색합니다")
                 }
 
                 if showsFilterPickers {
-                    Picker(selection: $engine.scope) {
+                    // labelsHidden: 선택된 값만 표시해 좁은 패널에서도 한 줄 유지
+                    Picker("범위", selection: $engine.scope) {
                         ForEach(SearchScope.allCases) { scope in
                             Label(scope.label, systemImage: scope.systemImage).tag(scope)
                         }
-                    } label: {
-                        Label("범위", systemImage: "folder")
                     }
                     .pickerStyle(.menu)
                     .controlSize(.small)
+                    .labelsHidden()
                     .fixedSize()
+                    .help("검색 범위")
 
-                    Picker(selection: $engine.category) {
+                    Picker("종류", selection: $engine.category) {
                         ForEach(SearchCategory.allCases) { category in
                             Label(category.label, systemImage: category.systemImage).tag(category)
                         }
-                    } label: {
-                        Label("종류", systemImage: "line.3.horizontal.decrease.circle")
                     }
                     .pickerStyle(.menu)
                     .controlSize(.small)
+                    .labelsHidden()
                     .fixedSize()
+                    .help("파일 종류")
                 }
 
-                Spacer()
+                Spacer(minLength: 8)
 
                 Picker(selection: $engine.sortOption) {
                     ForEach(SortOption.allCases) { option in
@@ -109,7 +115,9 @@ struct SearchHeaderView: View {
                 }
                 .pickerStyle(.menu)
                 .controlSize(.small)
+                .labelsHidden()
                 .fixedSize()
+                .help("정렬 기준")
             }
         }
         .padding(.horizontal, 16)

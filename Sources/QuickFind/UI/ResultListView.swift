@@ -25,7 +25,7 @@ struct ResultListView: View {
                 resultList
             }
         }
-        .frame(minWidth: 380, maxWidth: .infinity, maxHeight: .infinity)
+        .frame(minWidth: 340, maxWidth: .infinity, maxHeight: .infinity)
         // 리스트가 아직 마운트되기 전의 결과 변화도 놓치지 않도록 상위에 둔다
         .onChange(of: engine.results) { _, newResults in
             let ids = Set(newResults.map(\.id))

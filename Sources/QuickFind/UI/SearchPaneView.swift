@@ -20,40 +20,47 @@ struct SearchPaneView: View {
     @State private var emptyTrashError: String?
 
     var body: some View {
-        VStack(spacing: 0) {
-            SearchHeaderView(
-                engine: engine,
-                searchFocused: $searchFocused,
-                showsFilterPickers: showsFilterPickers,
-                requestEmptyTrash: { showEmptyTrashConfirm = true }
-            )
-            Divider()
-            HSplitView {
-                ResultListView(
+        GeometryReader { geometry in
+            // 패널이 좁을 때는 미리보기 컬럼을 숨겨 리스트가 뭉개지지 않게 한다
+            let showsPreviewColumn = geometry.size.width >= 660
+
+            VStack(spacing: 0) {
+                SearchHeaderView(
                     engine: engine,
-                    selection: $selection,
-                    requestTrash: requestRemoval
+                    searchFocused: $searchFocused,
+                    showsFilterPickers: showsFilterPickers,
+                    requestEmptyTrash: { showEmptyTrashConfirm = true }
                 )
-                if selectedResults.count > 1 {
-                    MultiSelectionPane(
-                        results: selectedResults,
-                        permanentDelete: engine.showingTrash,
+                Divider()
+                HSplitView {
+                    ResultListView(
+                        engine: engine,
+                        selection: $selection,
                         requestTrash: requestRemoval
                     )
-                } else if let selected = selectedResults.first {
-                    PreviewPane(
-                        result: selected,
-                        permanentDelete: engine.showingTrash,
-                        requestTrash: requestRemoval
-                    )
+                    if showsPreviewColumn {
+                        if selectedResults.count > 1 {
+                            MultiSelectionPane(
+                                results: selectedResults,
+                                permanentDelete: engine.showingTrash,
+                                requestTrash: requestRemoval
+                            )
+                        } else if let selected = selectedResults.first {
+                            PreviewPane(
+                                result: selected,
+                                permanentDelete: engine.showingTrash,
+                                requestTrash: requestRemoval
+                            )
+                        }
+                    }
                 }
+                Divider()
+                StatusBarView(
+                    engine: engine,
+                    selectionCount: selectedResults.count,
+                    selectionBytes: selectedResults.reduce(0) { $0 + ($1.size ?? 0) }
+                )
             }
-            Divider()
-            StatusBarView(
-                engine: engine,
-                selectionCount: selectedResults.count,
-                selectionBytes: selectedResults.reduce(0) { $0 + ($1.size ?? 0) }
-            )
         }
         .onAppear { searchFocused = true }
         .focusedSceneValue(\.focusSearchAction) {
