@@ -107,6 +107,17 @@ GitHub + download: https://github.com/Cho-mintaek/quickfind
 
 Would love feedback — especially on what would make you switch from Spotlight/Alfred for file search.</div>
 
+    <h2>4. 디스콰이엇 메이커로그 (프로덕트 승인 후 게시)</h2>
+    <p class="meta">프로덕트 등록·승인 제출 완료(disquiet.io/products/quickfind) · 승인되면 글쓰기에서 Product 를 QuickFind 로 선택해 아래 내용 게시</p>
+    <div class="post"><span class="title">(메이커로그 — 제목 없음, 본문만)</span>파인더 검색이 답답해서 macOS 파일 검색 앱 QuickFind 를 만들어 오픈소스로 공개했습니다 🔍
+
+Spotlight 인덱스(NSMetadataQuery)를 직접 조회하는 방식이라 디스크를 새로 뒤지지 않고, 타이핑 즉시 결과가 스트리밍됩니다. ⇧⌘Space 전역 단축키로 어디서든 부를 수 있고, 대용량/1년간 안 쓴 파일을 모아 정리하는 기능까지 넣었습니다.
+
+만들면서 만난 삽질 셋: NSMetadataQuery 는 하위 조건 1개짜리 compound predicate 를 예외로 거부하는데 Swift Concurrency Task 안에서는 그 예외가 조용히 삼켜져 무한 스피너가 됩니다. 다운로드·데스크탑·문서 폴더는 TCC 권한이 없으면 Spotlight 결과에서 소리 없이 빠집니다. macOS List 행에 onTapGesture(count:2) 를 달면 단일 클릭 선택이 죽습니다.
+
+전부 리포에 정리해뒀습니다. 무료이고 피드백 환영합니다!
+https://github.com/Cho-mintaek/quickfind</div>
+
     <div class="tip"><strong>게시 팁</strong> — ① 스크린샷은 docs/screenshots/ 의 3장을 활용하세요. ② 세 곳에 같은 날 올리기보다 GeekNews → 클리앙 → (반응 보고) r/macapps 순서로 하루 이틀 간격을 두면 피드백을 반영할 시간이 생깁니다. ③ 댓글의 버그 제보는 GitHub Issues 로 유도하면 관리가 쉽습니다.</div>
 </main>
 </body>
